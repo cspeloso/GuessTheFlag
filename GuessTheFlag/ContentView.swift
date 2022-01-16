@@ -7,6 +7,17 @@
 
 import SwiftUI
 
+struct FlagImage: View{
+    var image: String
+    
+    var body: some View{
+        Image(image)
+            .renderingMode(.original)
+            .clipShape(Capsule())
+            .shadow(radius: 5)
+    }
+}
+
 struct ContentView: View {
     
     @State private var showingScore = false
@@ -18,6 +29,8 @@ struct ContentView: View {
     
     @State private var score = 0
     @State private var highScore = 0
+    
+    @State private var buttonSelected = -1
     
     var body: some View {
         ZStack{
@@ -36,6 +49,8 @@ struct ContentView: View {
                     .foregroundColor(.white)
                 
                 VStack(spacing: 15){
+                    
+                    //  shows the "Tap the flag of: Country" portion
                     VStack{
                         Text("Tap the flag of")
                             .foregroundStyle(.secondary)
@@ -44,15 +59,27 @@ struct ContentView: View {
                             .font(.largeTitle.weight(.semibold))
                     }
                     
+                    //  displays 3 different flags.
                     ForEach(0..<3){number in
+                        
                         Button{
+                            withAnimation{
+                                buttonSelected = number
+                                
+                            }
                             flagTapped(number)
                         }label: {
-                            Image(countries[number])
-                                .renderingMode(.original)
-                                .clipShape(Capsule())
-                                .shadow(radius: 5)
+                            FlagImage(image: countries[number])
                         }
+                        .rotation3DEffect(.degrees(buttonSelected == number ? 360 : 0), axis: (x: 0, y: 1, z:0))
+                        .opacity(buttonSelected != number && buttonSelected != -1 ? 0.25 : 1)
+                        .blur(radius: buttonSelected != number && buttonSelected != -1 ? 3 : 0)
+                        
+                        
+                        
+                        
+                        
+                        
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -82,6 +109,7 @@ struct ContentView: View {
     }
     
     func flagTapped(_ number: Int){
+        
         if number == correctAnswer{
             score += 1
             if(score == 8){
@@ -89,7 +117,6 @@ struct ContentView: View {
                 scoreMessage = "You got 8 correct!"
                 highScore = score
                 score = 0
-                
             }
             else{
                 scoreTitle = "Correct"
@@ -104,12 +131,17 @@ struct ContentView: View {
             score = 0
             let country = countries[number]
             scoreMessage = "That's the flag of \(country)"
+            
         }
         
         showingScore = true
     }
     
     func askQuestion(){
+        
+        //  reset some animation variables
+        buttonSelected = -1
+        
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
     }
